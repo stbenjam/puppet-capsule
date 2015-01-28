@@ -277,6 +277,7 @@ class capsule (
     realm_principal       => $realm_principal,
     freeipa_remove_dns    => $freeipa_remove_dns,
     register_in_foreman   => $register_in_foreman,
+    trusted_hosts         => [$parent_fqdn, $capsule_fqdn]
     foreman_base_url      => $foreman_url,
     registered_proxy_url  => "https://${capsule_fqdn}:${capsule::foreman_proxy_port}",
     oauth_effective_user  => $foreman_oauth_effective_user,
