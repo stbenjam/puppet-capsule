@@ -7,9 +7,6 @@ class capsule::params {
   $reverse_proxy      = false
   $reverse_proxy_port = 8443
 
-  $puppet             = false
-  $puppet_ca_proxy    = undef
-
   $certs_tar = undef
   $rhsm_url = '/rhsm'
 

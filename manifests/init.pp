@@ -11,17 +11,6 @@
 #
 # $certs_tar::                          Path to a tar with certs for the node
 #
-# $puppet::                             Use puppet
-#                                       type:boolean
-#
-# $puppet_ca_proxy::                    The actual server that handles puppet CA.
-#                                       Setting this to anything non-empty causes
-#                                       the apache vhost to set up a proxy for all
-#                                       certificates pointing to the value.
-#
-# $puppet_server_implementation::       Puppet master implementation, either "master" (traditional
-#                                       Ruby) or "puppetserver" (JVM-based)
-#
 # === Advanced parameters:
 #
 # $pulp_master::                        Whether the capsule should be identified as a pulp master server
@@ -69,10 +58,6 @@ class capsule (
   $pulp_oauth_effective_user    = $capsule::params::pulp_oauth_effective_user,
   $pulp_oauth_key               = $capsule::params::pulp_oauth_key,
   $pulp_oauth_secret            = $capsule::params::pulp_oauth_secret,
-
-  $puppet                       = $capsule::params::puppet,
-  $puppet_ca_proxy              = $capsule::params::puppet_ca_proxy,
-  $puppet_server_implementation = undef,
 
   $reverse_proxy                = $capsule::params::reverse_proxy,
   $reverse_proxy_port           = $capsule::params::reverse_proxy_port,
@@ -212,30 +197,6 @@ class capsule (
     }
   }
 
-  if $puppet {
-    class { '::certs::puppet':
-      hostname => $capsule_fqdn,
-    } ~>
-    class { '::puppet':
-      server                      => true,
-      server_ca                   => $::foreman_proxy::puppetca,
-      server_foreman_url          => $foreman_url,
-      server_foreman_ssl_cert     => $::certs::puppet::client_cert,
-      server_foreman_ssl_key      => $::certs::puppet::client_key,
-      server_foreman_ssl_ca       => $::certs::puppet::ssl_ca_cert,
-      server_storeconfigs_backend => false,
-      server_dynamic_environments => true,
-      server_environments_owner   => 'apache',
-      server_config_version       => '',
-      server_enc_api              => 'v2',
-      server_ca_proxy             => $puppet_ca_proxy,
-      server_implementation       => $puppet_server_implementation,
-      additional_settings         => {
-                                        'disable_warnings' => 'deprecations',
-      },
-    }
-  }
-
   if $certs_tar {
     certs::tar_extract { $capsule::certs_tar: } -> Class['certs']
     Certs::Tar_extract[$certs_tar] -> Class['certs::foreman_proxy']
@@ -246,10 +207,6 @@ class capsule (
 
     if $pulp {
       Certs::Tar_extract[$certs_tar] -> Class['certs'] -> Class['::certs::qpid']
-    }
-
-    if $puppet {
-      Certs::Tar_extract[$certs_tar] -> Class['certs::puppet']
     }
   }
 }
